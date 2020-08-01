@@ -1,191 +1,128 @@
-import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   View,
+  TouchableOpacity,
   Switch,
-  Alert,
-  Modal,
-  Text,
-  TouchableHighlight,
+  Text
 } from 'react-native';
+import { Portal } from 'react-native-paper';
+import { Provider as PaperProvider, Button, Dialog, Paragraph } from 'react-native-paper';
+
+const PROXY_SERVER = '192.168.1.8' + ':3000';
+const MAC_ADDRESS = "FF-01-25-79-C7-EC";
+
+const playlists = ['Gym', 'Driving', 'Relax']
+
+function connectDms() {
+  const connectRequest = new Request(`http://${PROXY_SERVER}/connect/`);
+  const headers = connectRequest.headers;
+  headers.append('X-Audiowings-DeviceId', MAC_ADDRESS);
+  return fetch(connectRequest)
+    .then(response => response.json())
+    .then(userInfo => { return userInfo })
+    .catch(error => console.log('User not found', error));
+}
+
 
 
 export default function App() {
+ 
+  const [isSwitchOn, setIsSwitchOn] = React.useState(false);
+  const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
+  useEffect(() => {
+    isSwitchOn && connectDms()
+      .then(userInfo => {
+        console.log(`User info: ${JSON.stringify(userInfo)}`)
+        setConnection((userInfo === undefined) ? false : true)
+        setDeviceUser(userInfo)
+        setIsSwitchOn(deviceConnected)
+      })
+  });
 
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const [deviceConnected, setConnection] = React.useState(false);
+  useEffect(() => {
+    console.log(`Device is ${deviceConnected ? '' : 'not '}connected`)
+  });
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [deviceUser, setDeviceUser] =  React.useState('');
 
-
-  function showDialogPrompt(topic) {
-    let optionIndex = 0;
-    let promptHeaderText = topicEnum.properties[topic].promptHeader;
-    let promptActionText = topicEnum.properties[topic].promptAction;
-    let promptOptionText;
-    let optionsLength;
-    let playlists;
-    let activePlaylist
-
-    confBoxOverlay.style.display = "block";
-    dialogPromptHeader.innerText = promptHeaderText;
-    switch (topic) {
-      case topicEnum.PLAYLIST:
-        connectButton.checked ? getProviderPlaylists() : getLocalPlaylists()
-          .then($playlists => {
-            playlists = $playlists
-            optionsLength = playlists.items.length;
-            dialogPromptAction.innerText = `${promptActionText} ${playlists.items[optionIndex].name}`;
-          });
-        break;
-
-      default:
-        promptOptionText = topicEnum.properties[topic].options[optionIndex];
-        optionsLength = topicEnum.properties[topic].options.length;
-        dialogPromptAction.innerText = `${promptActionText} ${promptOptionText}`;
-    }
-
-    dialogYesButton.onclick = function () {
-      confBoxOverlay.style.display = "none";
-      switch (topic) {
-        case topicEnum.PLAYLIST: {
-          activePlaylist = playlists.items[optionIndex]
-          connectButton.checked ? getProviderPlaylist(activePlaylist.providerId, activePlaylist.playlistId) : getLocalPlaylist(activePlaylist.path)
-            .then(playlistData => {
-              console.log('Playlist Data... ', playlistData);
-              tracks = playlistData.items
-              displayPlaylist(tracks)
-            });
-          break;
-        }
-        case topicEnum.GENRE: {
-          break;
-        }
-        case topicEnum.PROVIDER: {
-          break;
-        }
-      }
-    }
-
-    dialogNoButton.onclick = function () {
-      optionIndex++;
-      // If we get to the end of the list reset the index to 0 to loop around again
-      if (optionIndex === optionsLength) {
-        optionIndex = 0;
-      }
-      switch (topic) {
-        case topicEnum.PLAYLIST: {
-          promptOptionText = playlists.items[optionIndex].name;
-          break;
-        }
-        case topicEnum.GENRE:
-        case topicEnum.PROVIDER: {
-          promptOptionText = topicEnum.properties[topic].options[optionIndex];
-          break;
-        }
-      }
-      dialogPromptAction.innerText = `${promptActionText} ${promptOptionText}`;
-      return false;
-    };
-
-    dragElement(confBox);
+  const [playlistsDialogVisible, setPlaylistsDialogVisible] = React.useState(false);
+  const showDialog = () => {
+    resetPlaylistIndex()
+    setPlaylistsDialogVisible(true)
+  }
+  const hideDialog = () => setPlaylistsDialogVisible(false)
+  const onDialogYes = () => {
+    setPlaylistsDialogVisible(false);
   }
 
+  const onDialogNo = () => {
+    setNextPlaylist()
+  }
+
+  const _onLongPressButton = () => {
+    console.log('You long-pressed the button!')
+    showDialog()
+
+  }
+
+  const [selectedPlaylist, setSelectedPlaylist] = React.useState(0);
+  const setNextPlaylist = () => setSelectedPlaylist(selectedPlaylist + 1 < playlists.length ? selectedPlaylist + 1 : 0)
+  const resetPlaylistIndex = () => setSelectedPlaylist(0);
+
   return (
-    <View style={styles.container}>
-      <Switch
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
-        ios_backgroundColor="#3e3e3e"
-        onValueChange={toggleSwitch}
-        value={isEnabled}
-      />
+    <PaperProvider>
+      <View style={styles.container}>
 
-      <View style={styles.centeredView} id="xxx">
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            Alert.alert("Modal has been closed.");
-          }}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Hello World!</Text>
+        <View style={styles.topBar}>
+          <Switch value={isSwitchOn} onValueChange={onToggleSwitch} /*onClick={playmode && showDialog}*/ />
+          <Text style={styles.text}>{`${!deviceConnected ? 'dis' : JSON.stringify(deviceUser.displayname) + ' '}connected`}</Text>
+        </View>
 
-              <TouchableHighlight
-                style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={styles.textStyle}>Hide Modal</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-        </Modal>
+        <View style={{ flex: 1 }}>
+          <TouchableOpacity onLongPress={_onLongPressButton} style={{ flex: 1 }}>
+            <View style={styles.big_button} />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableHighlight
-          style={styles.openButton}
-          onPress={() => {
-            setModalVisible(true);
-          }}
-        >
-          <Text style={styles.textStyle}>Show Modal</Text>
-        </TouchableHighlight>
+        <Portal>
+          <Dialog visible={playlistsDialogVisible} onDismiss={hideDialog}>
+            <Dialog.Title>Select Playlist</Dialog.Title>
+            <Dialog.Content>
+              <Paragraph>{`Would you like playlist: ${playlists[selectedPlaylist]}`}</Paragraph>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={onDialogYes}>Yes</Button>
+              <Button onPress={onDialogNo}>No</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
       </View>
-
-    </View>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 16
+    backgroundColor: '#111111',
+    padding: 16,
+    justifyContent: 'space-between',
   },
-
-  switch: {
-
+  topBar: {
+    flexDirection: 'row',
+    height: 32
   },
-
-  centeredView: {
+  text: {
+    paddingStart: 16,
+    color: '#FFFFFF'
+  },
+  big_button: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5
-  },
-  openButton: {
-    backgroundColor: "#F194FF",
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center"
+    alignItems: 'center',
+    backgroundColor: '#333333'
   }
+
 });

@@ -17,10 +17,17 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.willpoweru.awplayer",
+      "buildNumber": "1.0.0",
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.yourcompany.awplayer",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "description": ""
   }
 }
