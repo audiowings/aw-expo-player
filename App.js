@@ -8,44 +8,51 @@ import {
 } from 'react-native';
 import { Portal } from 'react-native-paper';
 import { Provider as PaperProvider, Button, Dialog, Paragraph } from 'react-native-paper';
+import Constants from "expo-constants";
 
 const PROXY_SERVER = '192.168.1.8' + ':3000';
-const MAC_ADDRESS = "FF-01-25-79-C7-EC";
-
-const playlists = ['Gym', 'Driving', 'Relax']
+const DEVICE_ID = "FF-01-25-79-C7-EC";
+const PLAYLISTS = ['Gym', 'Driving', 'Relax']
 
 function connectDms() {
+  console.log('Sending DMS Connect...')
   const connectRequest = new Request(`http://${PROXY_SERVER}/connect/`);
   const headers = connectRequest.headers;
-  headers.append('X-Audiowings-DeviceId', MAC_ADDRESS);
+  headers.append('X-Audiowings-DeviceId', DEVICE_ID );
   return fetch(connectRequest)
     .then(response => response.json())
-    .then(userInfo => { return userInfo })
+    .then(userInfo => userInfo )
     .catch(error => console.log('User not found', error));
 }
 
-
-
 export default function App() {
- 
+
+  const [deviceUser, setDeviceUser] = React.useState('undefined');
+
   const [isSwitchOn, setIsSwitchOn] = React.useState(false);
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
+  
+
   useEffect(() => {
-    isSwitchOn && connectDms()
+    console.log('IN EFFECT [A] !!!!!')
+    !isSwitchOn && setDeviceConnected(false)
+    isSwitchOn && !deviceConnected && connectDms()
       .then(userInfo => {
-        console.log(`User info: ${JSON.stringify(userInfo)}`)
-        setConnection((userInfo === undefined) ? false : true)
-        setDeviceUser(userInfo)
-        setIsSwitchOn(deviceConnected)
+        console.log(`User info: ${userInfo}`)
+        if(userInfo.deviceId === DEVICE_ID){
+          setDeviceConnected(true)
+          setDeviceUser(userInfo)
+        } else setIsSwitchOn(false)
       })
   });
-
-  const [deviceConnected, setConnection] = React.useState(false);
   useEffect(() => {
+    console.log('IN EFFECT [B] !!!!!')
     console.log(`Device is ${deviceConnected ? '' : 'not '}connected`)
   });
 
-  const [deviceUser, setDeviceUser] =  React.useState('');
+  const [deviceConnected, setDeviceConnected] = React.useState(false);
+
+
 
   const [playlistsDialogVisible, setPlaylistsDialogVisible] = React.useState(false);
   const showDialog = () => {
@@ -68,7 +75,7 @@ export default function App() {
   }
 
   const [selectedPlaylist, setSelectedPlaylist] = React.useState(0);
-  const setNextPlaylist = () => setSelectedPlaylist(selectedPlaylist + 1 < playlists.length ? selectedPlaylist + 1 : 0)
+  const setNextPlaylist = () => setSelectedPlaylist(selectedPlaylist + 1 < PLAYLISTS.length ? selectedPlaylist + 1 : 0)
   const resetPlaylistIndex = () => setSelectedPlaylist(0);
 
   return (
@@ -90,7 +97,7 @@ export default function App() {
           <Dialog visible={playlistsDialogVisible} onDismiss={hideDialog}>
             <Dialog.Title>Select Playlist</Dialog.Title>
             <Dialog.Content>
-              <Paragraph>{`Would you like playlist: ${playlists[selectedPlaylist]}`}</Paragraph>
+              <Paragraph>{`Would you like playlist: ${PLAYLISTS[selectedPlaylist]}`}</Paragraph>
             </Dialog.Content>
             <Dialog.Actions>
               <Button onPress={onDialogYes}>Yes</Button>
@@ -110,19 +117,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#111111',
     padding: 16,
     justifyContent: 'space-between',
+    top: Constants.statusBarHeight,
   },
   topBar: {
     flexDirection: 'row',
-    height: 32
+    height: 56
   },
   text: {
     paddingStart: 16,
+    textAlignVertical: "center",
     color: '#FFFFFF'
   },
   big_button: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#333333'
+    backgroundColor: '#222222'
   }
 
 });
