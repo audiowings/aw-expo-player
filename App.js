@@ -14,8 +14,8 @@ import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
 
 const PROXY_ADDR = 'https://aw-dms-demo.nw.r.appspot.com'
 const PROXY_PORT = ''
-console.log('EXPO_LOCAL_DMS set to', Constants.manifest.env.EXPO_LOCAL_DMS)
-const PROXY_SERVER = Constants.manifest.env.EXPO_LOCAL_DMS || PROXY_ADDR + PROXY_PORT
+console.log('localDmsUrl set to', Constants.manifest.extra.localDmsUrl)
+const PROXY_SERVER = Constants.manifest.extra.localDmsUrl || PROXY_ADDR + PROXY_PORT
 console.log('Requests routed to', PROXY_SERVER)
 const DEVICE_ID = 'FF-FF-FF-FF-FF-FF'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items //['Gym', 'Driving', 'Relax']
