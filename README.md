@@ -15,5 +15,8 @@ The app may be run within Expo while in development:
 1. Launch Expo app on the device
 1. Scan the QR code to lauch the player app
 
+## Building the stand alone app
+Enter `expo build:android -t apk` to build a new Android apk package
+
 ## Installing the stand alone native app
 For more stable installation APK files are available on request to allow you to run the player against the cloud DMS 
