@@ -9,17 +9,29 @@ import {
 import { Portal } from 'react-native-paper';
 import { Provider as PaperProvider, Button, Dialog, Paragraph } from 'react-native-paper';
 import Constants from 'expo-constants'
+import * as Network from 'expo-network';
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
 
-
-const PROXY_SERVER = '192.168.1.8' + ':3000';
-const DEVICE_ID = "FF-01-25-79-C7-EC";
+const PROXY_ADDR = 'https://aw-dms-demo.nw.r.appspot.com'
+const PROXY_PORT = ''
+const PROXY_SERVER = PROXY_ADDR + PROXY_PORT
+const DEVICE_ID = 'FF-01-25-79-C7-EC'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items //['Gym', 'Driving', 'Relax']
 
+let deviceId = DEVICE_ID
+async function setDeviceId() {
+  try {
+    const devId = await Network.getMacAddressAsync()
+    devId && (deviceId = devId)
+  }
+  catch (error) {
+    console.log('Error getting MAC Address...', error)
+  }
+}
+setDeviceId()
 
 let tracks = []
 let inPlayerMode = false
-
 
 async function getLocalPlaylist(playlistPath) {
   console.log('Playlist Data... ', playlistPath);
@@ -35,7 +47,7 @@ function requestPlaylist(isDeviceConnected, selectedPlaylist) {
 }
 
 function getProviderPlaylists() {
-  let playlistsRequest = new Request(`http://${PROXY_SERVER}/playlists/`);
+  let playlistsRequest = new Request(`${PROXY_SERVER}/playlists/`);
   let headers = playlistsRequest.headers;
   headers.append('X-Audiowings-DeviceId', DEVICE_ID);
   return fetch(playlistsRequest)
@@ -45,7 +57,7 @@ function getProviderPlaylists() {
 }
 
 async function getLocalPlaylists() {
-  try{
+  try {
     return LOCAL_PLAYLISTS
   }
   catch (error) {
@@ -53,34 +65,43 @@ async function getLocalPlaylists() {
   }
 }
 
-async function connectDms() {
-  const connectRequest = new Request(`http://${PROXY_SERVER}/connect/`);
+async function connectDms(deviceId) {
+
+  const connectRequest = new Request(`${PROXY_SERVER}/connect/`);
   const headers = connectRequest.headers;
-  headers.append('X-Audiowings-DeviceId', DEVICE_ID);
+  headers.append('X-Audiowings-DeviceId', deviceId);
   try {
     const response = await fetch(connectRequest);
-    const userInfo = response.json();
-    return userInfo;
+    try {
+      return await response.json()
+    }
+    catch {
+      return console.log('User not found', error);
+    }
   }
   catch (error) {
     return console.log('User not found', error);
   }
 }
 
+
 export default function App() {
-
-  const [deviceUser, setDeviceUser] = React.useState('undefined');
-
+  
   const [isSwitchOn, setIsSwitchOn] = React.useState(false);
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
+  const [deviceUser, setDeviceUser] = React.useState({deviceId: '', displayName: ''});
+
   useEffect(() => {
     !isSwitchOn && setDeviceConnected(false)
-    isSwitchOn && !isDeviceConnected && connectDms()
+    isSwitchOn && !isDeviceConnected && connectDms(deviceId)
       .then(userInfo => {
-        if (userInfo.deviceId === DEVICE_ID) {
+
+        if (userInfo && userInfo.deviceId === deviceId) {
           setDeviceConnected(true)
           setDeviceUser(userInfo)
+          console.log('USER INFO:', JSON.stringify(deviceUser))
+
         } else setIsSwitchOn(false)
       })
   });
@@ -126,7 +147,7 @@ export default function App() {
 
         <View style={styles.topBar}>
           <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
-          <Text style={styles.text}>{`${!isDeviceConnected ? 'Dis' : JSON.stringify(deviceUser.displayname) + ' '}connected`}</Text>
+          <Text style={styles.text}>{`${!isDeviceConnected ? 'Dis' : deviceUser.displayName + ' '}connected`}</Text>
         </View>
 
         <View style={{ flex: 1 }}>
