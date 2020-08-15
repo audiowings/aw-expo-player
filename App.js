@@ -11,6 +11,9 @@ import { Provider as PaperProvider, Button, Dialog, Paragraph } from 'react-nati
 import Constants from 'expo-constants'
 import * as Network from 'expo-network';
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
+import DeviceUser from './DeviceUser' 
+
+console.log('DeviceUser', DeviceUser)
 
 const PROXY_ADDR = 'https://aw-dms-demo.nw.r.appspot.com'
 const PROXY_PORT = ''

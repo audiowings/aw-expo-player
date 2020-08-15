@@ -2,7 +2,7 @@
   "expo": {
     "name": "aw-expo-player",
     "slug": "aw-expo-player",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -22,12 +22,13 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.yourcompany.awplayer",
-      "versionCode": 1
+      "package": "com.willpoweru.awplayer",
+      "versionCode": 1,
+      "adaptiveIcon": { "foregroundImage": "./assets/web_hi_res_512.png", "backgroundColor": "#2196f3" }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "description": ""
+    "description": "Audio player device demo"
   }
 }
