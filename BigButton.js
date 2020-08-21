@@ -8,7 +8,6 @@ import { DeviceUserContext } from './device-user-context'
 import { AudioPlayerContext } from './audio-player-context'
 import { DialogContext } from './dialog-context'
 import { getLocalPlaylists, getProviderPlaylists } from './AwClient'
-import PlaylistsDialog from './PlaylistsDialog'
 
 export default function BigButton() {
     const [deviceUser] = useContext(DeviceUserContext)
@@ -23,9 +22,10 @@ export default function BigButton() {
 
         deviceUser.isOnline ? getProviderPlaylists(deviceUser.deviceId) : getLocalPlaylists()
             .then(_playlists => {
-                setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
-                console.log('audioPlayer.playlists.length', audioPlayer.playlists.length)
+                setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
+                console.log('audioPlayer.selectedPlaylist', JSON.stringify(audioPlayer.playlists[1]))
                 setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
+                console.log('BigButton.showDialog: dialogState', dialogState)
 
             })
     }

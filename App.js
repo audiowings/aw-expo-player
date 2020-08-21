@@ -3,6 +3,8 @@ import {
   StyleSheet,
   View
 } from 'react-native';
+import { Portal } from 'react-native-paper';
+
 import Constants from 'expo-constants'
 import { Provider as PaperProvider } from 'react-native-paper';
 import TopBar from './TopBar'
@@ -15,19 +17,21 @@ import DialogProvider from './dialog-context'
 export default function App() {
 
   return (
-    <DeviceUserProvider>
-      <PaperProvider>
+    <PaperProvider>
+
+      <DeviceUserProvider>
         <View style={styles.container}>
           <TopBar />
           <AudioPlayerProvider>
             <DialogProvider>
               <BigButton />
-              <PlaylistsDialog />
+                <PlaylistsDialog />
             </DialogProvider>
           </AudioPlayerProvider>
         </View>
-      </PaperProvider>
-    </DeviceUserProvider>
+      </DeviceUserProvider>
+    </PaperProvider>
+
   )
 }
 
