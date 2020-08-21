@@ -26,21 +26,20 @@ export default function PlaylistsDialog() {
     setNextPlaylist()
   }
 
-
   return (
-
-    <Portal>
-      <Dialog visible={dialogState.playlistsDialogVisible} onDismiss={hideDialog}>
-        <Dialog.Title>Select Playlist</Dialog.Title>
-        <Dialog.Content>
-          <Paragraph>{`Would you like playlist: ${audioPlayer.playlists.items[audioPlayer.selectedPlaylist].name}`}</Paragraph>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDialogYes}>Yes</Button>
-          <Button onPress={onDialogNo}>No</Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
-
+    <React.Fragment>{audioPlayer.playlists.length > 0 &&
+      <Portal>
+        <Dialog visible={dialogState.playlistsDialogVisible} onDismiss={hideDialog}>
+          <Dialog.Title>Select Playlist</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>{`Would you like playlist: ${audioPlayer.playlists[audioPlayer.selectedPlaylist].name}`}</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={onDialogYes}>Yes</Button>
+            <Button onPress={onDialogNo}>No</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    }</React.Fragment>
   )
 }

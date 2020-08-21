@@ -23,10 +23,7 @@ export default function BigButton() {
         deviceUser.isOnline ? getProviderPlaylists(deviceUser.deviceId) : getLocalPlaylists()
             .then(_playlists => {
                 setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
-                console.log('audioPlayer.selectedPlaylist', JSON.stringify(audioPlayer.playlists[1]))
                 setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
-                console.log('BigButton.showDialog: dialogState', dialogState)
-
             })
     }
 

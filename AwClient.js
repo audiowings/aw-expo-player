@@ -34,7 +34,6 @@ export function getProviderPlaylists(deviceId) {
   const headers = playlistsRequest.headers;
   headers.append('X-Audiowings-DeviceId', deviceId);
   return fetch(playlistsRequest)
-    .then(status)
     .then(response => response.json())
     .catch(error => console.log(':( Request failed', error));
 }

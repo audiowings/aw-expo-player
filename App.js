@@ -1,9 +1,8 @@
-import React, { useEffect, useContext } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View
 } from 'react-native';
-import { Portal } from 'react-native-paper';
 
 import Constants from 'expo-constants'
 import { Provider as PaperProvider } from 'react-native-paper';
