@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
-import { Button, Dialog, Paragraph } from 'react-native-paper';
-import { Portal } from 'react-native-paper';
+import { Portal, Button, Dialog, Paragraph } from 'react-native-paper';
 import { DialogContext } from './dialog-context'
 import { AudioPlayerContext } from './audio-player-context'
 

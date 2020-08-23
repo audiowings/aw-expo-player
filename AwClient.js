@@ -4,7 +4,6 @@ const PROXY_SERVER = Constants.manifest.extra.proxyUrl || CLOUD_PROXY_URL
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
 
-
 export async function connectDms(deviceId) {
   try {
     if (!deviceId) {

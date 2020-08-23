@@ -24,7 +24,8 @@
     "android": {
       "package": "com.willpoweru.awplayer",
       "versionCode": 1,
-      "adaptiveIcon": { "foregroundImage": "./assets/web_hi_res_512.png", "backgroundColor": "#2196f3" }
+      "adaptiveIcon": { "foregroundImage": "./assets/web_hi_res_512.png", "backgroundColor": "#2196f3" },
+      "enableDangerousExperimentalLeanBuilds" : true
     },
     "web": {
       "favicon": "./assets/favicon.png"

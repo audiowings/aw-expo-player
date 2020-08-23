@@ -1,10 +1,9 @@
 import React from 'react';
 import {
   StyleSheet,
-  View
+  View,
+  StatusBar
 } from 'react-native';
-
-import Constants from 'expo-constants'
 import { Provider as PaperProvider } from 'react-native-paper';
 import TopBar from './TopBar'
 import BigButton from './BigButton'
@@ -17,9 +16,9 @@ export default function App() {
 
   return (
     <PaperProvider>
-
       <DeviceUserProvider>
         <View style={styles.container}>
+          <StatusBar backgroundColor="blue" barStyle='default' />
           <TopBar />
           <AudioPlayerProvider>
             <DialogProvider>
@@ -30,7 +29,6 @@ export default function App() {
         </View>
       </DeviceUserProvider>
     </PaperProvider>
-
   )
 }
 
@@ -38,8 +36,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#111111',
-    padding: 16,
     justifyContent: 'space-between',
-    top: Constants.statusBarHeight,
   }
 });
