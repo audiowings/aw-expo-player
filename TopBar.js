@@ -6,11 +6,17 @@ import {
     Text
 } from 'react-native';
 import { DeviceUserContext } from './device-user-context'
+import { DialogContext } from './dialog-context'
 import { connectDms } from './AwClient'
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
     const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
+    const [dialogState, setDialogState] = useContext(DialogContext)
+
+    const showDialog = () => {
+        setDialogState(dialogState => ({ ...dialogState, loginLinkDialogVisible: true }))
+    }
 
     const onToggleSwitch = () => {
         if (!isSwitchOn) {
@@ -23,6 +29,9 @@ export default function TopBar() {
                             isOnline: true,
                             displayName: _userInfo.displayName
                         }))
+                        showDialog()
+
+
                     } else {
                         setIsSwitchOn(false)
                     }

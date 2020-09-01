@@ -9,19 +9,18 @@ import { AudioPlayerContext } from './audio-player-context'
 import { DialogContext } from './dialog-context'
 import { getLocalPlaylists, getProviderPlaylists } from './AwClient'
 
-export default function BigButton() {
+export default BigButton = () => {
     const [deviceUser] = useContext(DeviceUserContext)
     const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
     const [dialogState, setDialogState] = useContext(DialogContext)
     const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylist: 0 }))
 
-    const showDialog = () => {
+    const showDialog = async () => {
         resetPlaylistIndex()
-        deviceUser.isOnline ? getProviderPlaylists(deviceUser.deviceId) : getLocalPlaylists()
-            .then(_playlists => {
-                setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
-                setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
-            })
+        const _playlists = deviceUser.isOnline ? await getProviderPlaylists(deviceUser.deviceId) : await getLocalPlaylists()
+        console.log('>>> Playlists data:', _playlists)
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
+        setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
     }
     const _onLongPressButton = () => {
         showDialog()

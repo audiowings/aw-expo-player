@@ -1,6 +1,5 @@
 import Constants from 'expo-constants'
-const CLOUD_PROXY_URL = 'https://aw-dms-demo.nw.r.appspot.com'
-const PROXY_SERVER = Constants.manifest.extra.proxyUrl || CLOUD_PROXY_URL
+const PROXY_SERVER = Constants.manifest.extra.proxyUrl
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
 
@@ -28,13 +27,24 @@ export async function connectDms(deviceId) {
   catch (error) { console.log('Error', error) }
 }
 
-export function getProviderPlaylists(deviceId) {
+export async function getProviderPlaylists(deviceId) {
   const playlistsRequest = new Request(`${PROXY_SERVER}/playlists/`);
   const headers = playlistsRequest.headers;
   headers.append('X-Audiowings-DeviceId', deviceId);
-  return fetch(playlistsRequest)
-    .then(response => response.json())
-    .catch(error => console.log(':( Request failed', error));
+  try {
+    const response = await fetch(playlistsRequest)
+    try {
+      const playlists = await response.json()
+      // console.log('Playlists:', playlists)
+      return playlists.items
+    }
+    catch {
+      return console.log('Error getting playlists', error);
+    }
+  }
+  catch (error) {
+    return console.log(':( Request failed', error)
+  }
 }
 
 export async function getLocalPlaylists() {
