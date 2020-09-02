@@ -7,7 +7,7 @@ import {
 import { DeviceUserContext } from './device-user-context'
 import { AudioPlayerContext } from './audio-player-context'
 import { DialogContext } from './dialog-context'
-import { getLocalPlaylists, getProviderPlaylists } from './AwClient'
+import { getPlaylists } from './AwClient'
 
 export default BigButton = () => {
     const [deviceUser] = useContext(DeviceUserContext)
@@ -17,8 +17,8 @@ export default BigButton = () => {
 
     const showDialog = async () => {
         resetPlaylistIndex()
-        const _playlists = deviceUser.isOnline ? await getProviderPlaylists(deviceUser.deviceId) : await getLocalPlaylists()
-        console.log('>>> Playlists data:', _playlists)
+        const _playlists = await getPlaylists(deviceUser.isOnline, deviceUser.deviceId )
+        // console.log('>-> Playlists data:', _playlists)
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
         setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
     }

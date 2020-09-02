@@ -1,28 +1,31 @@
 import React, { useContext } from 'react'
 import { Portal, Button, Dialog, Paragraph } from 'react-native-paper'
 import { DialogContext } from './dialog-context'
+import { DeviceUserContext } from './device-user-context'
 import { AudioPlayerContext } from './audio-player-context'
+import { getPlaylist } from './AwClient'
+
 
 export default function PlaylistsDialog() {
+  const [deviceUser] = useContext(DeviceUserContext)
   const [dialogState, setDialogState] = useContext(DialogContext)
   const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
 
-  function requestPlaylist() {
-    // TODO: Add code
-  }
   const hideDialog = () => setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: false }))
 
-  const onDialogYes = () => {
+  const onDialogYes = async () => {
     hideDialog()
-    // requestPlaylist()
+    const playlist = await getPlaylist(deviceUser.isOnline, deviceUser.deviceId, audioPlayer.playlists[audioPlayer.selectedPlaylistIndex])
+    setAudioPlayer({ ...audioPlayer, loadedPlaylist: playlist })
+
+    console.log('Playlist::::', audioPlayer.loadedPlaylist)
   }
 
   // User taps no
   const onDialogNo = () => {
-    const notLastItem = audioPlayer.selectedPlaylist + 1 < audioPlayer.playlists.length
-    const nextItem = notLastItem ? audioPlayer.selectedPlaylist + 1 : 0
-    const setNextPlaylist = () => setAudioPlayer({ ...audioPlayer, selectedPlaylist: nextItem })
-    setNextPlaylist()
+    const notLastItem = audioPlayer.selectedPlaylistIndex + 1 < audioPlayer.playlists.length
+    const nextItem = notLastItem ? audioPlayer.selectedPlaylistIndex + 1 : 0
+    setAudioPlayer({ ...audioPlayer, selectedPlaylistIndex: nextItem })
   }
 
   return (
@@ -31,7 +34,7 @@ export default function PlaylistsDialog() {
         <Dialog visible={dialogState.playlistsDialogVisible} onDismiss={hideDialog}>
           <Dialog.Title>Select Playlist</Dialog.Title>
           <Dialog.Content>
-            <Paragraph>{`Would you like playlist: ${audioPlayer.playlists[audioPlayer.selectedPlaylist].name}`}</Paragraph>
+            <Paragraph>{`Would you like playlist: ${audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name}`}</Paragraph>
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={onDialogYes}>Yes</Button>
