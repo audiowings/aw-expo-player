@@ -5,7 +5,6 @@ import { DeviceUserContext } from './device-user-context'
 import { AudioPlayerContext } from './audio-player-context'
 import { getPlaylist } from './AwClient'
 
-
 export default function PlaylistsDialog() {
   const [deviceUser] = useContext(DeviceUserContext)
   const [dialogState, setDialogState] = useContext(DialogContext)
@@ -15,10 +14,16 @@ export default function PlaylistsDialog() {
 
   const onDialogYes = async () => {
     hideDialog()
-    const playlist = await getPlaylist(deviceUser.isOnline, deviceUser.deviceId, audioPlayer.playlists[audioPlayer.selectedPlaylistIndex])
-    setAudioPlayer({ ...audioPlayer, loadedPlaylist: playlist })
+    const selectedPlaylist = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex]
+    setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylist: selectedPlaylist }))
 
-    console.log('Playlist::::', audioPlayer.loadedPlaylist)
+    const loadedPlaylist = await getPlaylist(deviceUser.isOnline, deviceUser.deviceId, selectedPlaylist)
+    setAudioPlayer(audioPlayer => ({ ...audioPlayer, loadedPlaylist: loadedPlaylist }))
+
+
+    setAudioPlayer(audioPlayer => ({ ...audioPlayer, currentTrack: loadedPlaylist.items[0].track }))
+
+
   }
 
   // User taps no

@@ -9,9 +9,8 @@ export default function LoginLinkDialog() {
 
   const hideDialog = () => setDialogState(dialogState => ({ ...dialogState, loginLinkDialogVisible: false }))
 
-  const onDialogYes = () => {
+  const onDialogOk = () => {
     hideDialog()
-    // requestPlaylist()
   }
 
   return (
@@ -22,7 +21,7 @@ export default function LoginLinkDialog() {
           <Paragraph selectable={true}>{`Visit ${PROXY_SERVER}/spotifylogin/3BtK1ripPNwYzeekNSYo to access your Spotify content via this device`}</Paragraph>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onDialogYes}>Ok</Button>
+          <Button onPress={onDialogOk}>Ok</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>

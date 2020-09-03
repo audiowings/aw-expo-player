@@ -13,13 +13,12 @@ export default BigButton = () => {
     const [deviceUser] = useContext(DeviceUserContext)
     const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
     const [dialogState, setDialogState] = useContext(DialogContext)
-    const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylist: 0 }))
+    const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
 
     const showDialog = async () => {
         resetPlaylistIndex()
         const _playlists = await getPlaylists(deviceUser.isOnline, deviceUser.deviceId )
-        // console.log('>-> Playlists data:', _playlists)
-        setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists, selectedPlaylist: 0 }))
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
         setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
     }
     const _onLongPressButton = () => {

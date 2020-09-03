@@ -8,11 +8,14 @@ import {
 import { DeviceUserContext } from './device-user-context'
 import { DialogContext } from './dialog-context'
 import { connectDms } from './AwClient'
+import { AudioPlayerContext } from './audio-player-context'
+
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
     const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
     const [dialogState, setDialogState] = useContext(DialogContext)
+    const [audioPlayer] = useContext(AudioPlayerContext)
 
     const showDialog = () => {
         setDialogState(dialogState => ({ ...dialogState, loginLinkDialogVisible: true }))
@@ -49,7 +52,8 @@ export default function TopBar() {
     return (
         <View style={styles.topBar}>
             <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
-            <Text style={styles.text}>{isSwitchOn && deviceUser.displayName ? `${deviceUser.displayName}: Online` : `${deviceUser.deviceId}: Offline`}</Text>
+            <Text style={styles.text}>{isSwitchOn && deviceUser.displayName ? `${deviceUser.displayName}: Online` : `Offline`}</Text>
+            <Text style={styles.text}>{audioPlayer.selectedPlaylist && audioPlayer.currentTrack && `${audioPlayer.selectedPlaylist.name}: ${audioPlayer.currentTrack.name}`}</Text>
         </View>
     )
 }
