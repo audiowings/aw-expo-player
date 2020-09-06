@@ -37,7 +37,7 @@ export default function TopBar() {
                         }))
                         if (_userInfo.authMessage) {
                             const title = 'Login via browser'
-                            const body = `Visit ${PROXY_SERVER}/spotifylogin/${_userInfo.userId} to access your Spotify content via this device`
+                            const body = _userInfo.authMessage
                             showDialog(title, body)
                         }
                     } else {
