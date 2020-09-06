@@ -4,12 +4,13 @@ import {
     View,
     Switch,
     Text
-} from 'react-native';
+} from 'react-native'
+import Constants from 'expo-constants'
+const PROXY_SERVER = Constants.manifest.extra.proxyUrl
 import { DeviceUserContext } from './device-user-context'
 import { DialogContext } from './dialog-context'
 import { connectDms } from './AwClient'
 import { AudioPlayerContext } from './audio-player-context'
-
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
@@ -17,8 +18,8 @@ export default function TopBar() {
     const [dialogState, setDialogState] = useContext(DialogContext)
     const [audioPlayer] = useContext(AudioPlayerContext)
 
-    const showDialog = () => {
-        setDialogState(dialogState => ({ ...dialogState, loginLinkDialogVisible: true }))
+    const showDialog = (title, body) => {
+        setDialogState(dialogState => ({ ...dialogState, loginLinkDialogVisible: true, loginLinkDialogTitle: title, loginLinkDialogBody: body }))
     }
 
     const onToggleSwitch = () => {
@@ -26,18 +27,23 @@ export default function TopBar() {
             setIsSwitchOn(true)
             connectDms(deviceUser.deviceId)
                 .then(_userInfo => {
+                    console.log('USER:', _userInfo)
+
                     if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
                         setDeviceUser(deviceUser => ({
                             ...deviceUser,
                             isOnline: true,
                             displayName: _userInfo.displayName
                         }))
-                        showDialog()
-
-
+                        if (_userInfo.authMessage) {
+                            const title = 'Login via browser'
+                            const body = `Visit ${PROXY_SERVER}/spotifylogin/${_userInfo.userId} to access your Spotify content via this device`
+                            showDialog(title, body)
+                        }
                     } else {
                         setIsSwitchOn(false)
                     }
+
                 })
         } else {
             setIsSwitchOn(false)
@@ -68,4 +74,4 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
         color: '#FFFFFF'
     }
-});
+})

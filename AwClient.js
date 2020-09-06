@@ -1,8 +1,8 @@
 import Constants from 'expo-constants'
-const PROXY_SERVER = Constants.manifest.extra.proxyUrl
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
-const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
 
+const PROXY_SERVER = Constants.manifest.extra.proxyUrl
+const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
 
 export async function connectDms(deviceId) {
   try {
@@ -15,9 +15,11 @@ export async function connectDms(deviceId) {
     try {
       const response = await fetch(connectRequest);
       try {
-        return await response.json()
+        const userInfo = await response.json()
+        response.headers.map['x-spotify-auth-msg'] && (userInfo.authMessage = response.headers.map['x-spotify-auth-msg'])
+        return userInfo
       }
-      catch {
+      catch (error) {
         return console.log('User not found', error);
       }
     }
@@ -36,7 +38,6 @@ async function getProviderPlaylists(deviceId) {
     const response = await fetch(playlistsRequest)
     try {
       const playlists = await response.json()
-      // console.log('Playlists:', playlists)
       return playlists.items
     }
     catch {
@@ -70,7 +71,7 @@ export async function getProviderPlaylist(deviceId, url) {
     const response = await fetch(playlistRequest)
     try {
       const playlist = await response.json()
-      return playlist
+      return playlist.items
     }
     catch {
       return console.log('Error getting playlist', error);

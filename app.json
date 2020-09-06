@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "aw-expo-player",
-    "slug": "aw-expo-player",
-    "version": "1.0.1",
+    "name": "Audio Player",
+    "slug": "audio-player",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -16,14 +16,9 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "bundleIdentifier": "com.willpoweru.awplayer",
-      "buildNumber": "1.0.0",
-      "supportsTablet": true
-    },
     "android": {
-      "package": "com.willpoweru.awplayer",
-      "versionCode": 1,
+      "package": "com.willpoweru.audioplayer",
+      "versionCode": 3,
       "adaptiveIcon": { "foregroundImage": "./assets/web_hi_res_512.png", "backgroundColor": "#2196f3" },
       "enableDangerousExperimentalLeanBuilds" : true
     },

@@ -9,21 +9,16 @@ export default function PlaylistsDialog() {
   const [deviceUser] = useContext(DeviceUserContext)
   const [dialogState, setDialogState] = useContext(DialogContext)
   const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
-
+  
   const hideDialog = () => setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: false }))
 
   const onDialogYes = async () => {
     hideDialog()
     const selectedPlaylist = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex]
     setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylist: selectedPlaylist }))
-
     const loadedPlaylist = await getPlaylist(deviceUser.isOnline, deviceUser.deviceId, selectedPlaylist)
     setAudioPlayer(audioPlayer => ({ ...audioPlayer, loadedPlaylist: loadedPlaylist }))
-
-
-    setAudioPlayer(audioPlayer => ({ ...audioPlayer, currentTrack: loadedPlaylist.items[0].track }))
-
-
+    setAudioPlayer(audioPlayer => ({ ...audioPlayer, currentTrack: loadedPlaylist[0].track }))
   }
 
   // User taps no
