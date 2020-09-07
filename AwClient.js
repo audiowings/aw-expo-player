@@ -82,6 +82,6 @@ export async function getProviderPlaylist(deviceId, url) {
   }
 }
 
-exports.getPlaylist = async (isOnline, deviceId, playlist) => {
-  return isOnline ? await getProviderPlaylist(deviceId, playlist.tracks.href) : await getLocalPlaylist()
+exports.getPlaylist = async (isOnline, deviceId, url) => {
+  return isOnline ? await getProviderPlaylist(deviceId, url) : await getLocalPlaylist()
 }

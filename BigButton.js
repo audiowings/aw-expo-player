@@ -13,7 +13,6 @@ import { getPlaylists } from './AwClient'
 
 let playbackInstance = null
 
-
 export default BigButton = () => {
     const [deviceUser] = useContext(DeviceUserContext)
     const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
@@ -21,8 +20,11 @@ export default BigButton = () => {
 
     useEffect(() => {
         setAudioMode()
-        audioPlayer.currentTrack && loadNewPlaybackInstance(true)
-    }, [audioPlayer.currentTrack])
+    }, [])
+
+    useEffect(() => {
+        audioPlayer.tracks && loadNewPlaybackInstance(true)
+    }, [audioPlayer.tracks ])
 
     const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
 
@@ -34,6 +36,7 @@ export default BigButton = () => {
     }
 
     const setAudioMode = async () => {
+        console.log('setAudioMode:')
         try {
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
@@ -44,19 +47,26 @@ export default BigButton = () => {
                 staysActiveInBackground: true,
                 playThroughEarpieceAndroid: true
             })
-
         } catch (e) {
             console.log(e)
         }
     }
 
     _onPlaybackStatusUpdate = status => {
+        console.log('_onPlaybackStatusUpdate status:', {
+            justfin: status.didJustFinish, 
+            playing: status.isPlaying, 
+            buffering: status.isBuffering, 
+            trackname: audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name,
+            trackIndex: audioPlayer.currentTrackIndex
+        })
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status }))
+
 
         if (status.isLoaded) {
-            setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status }))
             if (status.didJustFinish && !status.isLooping) {
-                advanceTrack();
-                // _updatePlaybackInstanceForIndex(true);
+                advanceTrackIndex()
+                loadNewPlaybackInstance(true)
             }
         } else {
             if (status.error) {
@@ -65,23 +75,26 @@ export default BigButton = () => {
         }
     }
 
-    const advanceTrack = () => {
-        console.log('status', status)
-
-        const notLastItem = audioPlayer.currentTrackIndex + 1 < audioPlayer.loadedPlaylist.length
-        const nextItem = notLastItem ? audioPlayer.currentTrackIndex + 1 : 0
-        setAudioPlayer({ ...audioPlayer, currentTrackIndex: nextItem })
+    const advanceTrackIndex = () => {
+        const notLastItem = audioPlayer.currentTrackIndex + 1 < audioPlayer.tracks.length
+        const nextItemIndex = notLastItem ? audioPlayer.currentTrackIndex + 1 : 0
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, currentTrackIndex: nextItemIndex }))
     }
 
     const loadNewPlaybackInstance = async (playing) => {
+        console.log('loadNewPlaybackInstance:')
+        console.log('playbackInstance != null:',playbackInstance != null )
+
         if (playbackInstance != null) {
-            await playbackInstance.unloadAsync();
-            playbackInstance = null;
+            console.log('Unloading playback instance...')
+            await playbackInstance.unloadAsync()
+            playbackInstance = null
         }
 
         try {
+            const currentTrack = audioPlayer.tracks[audioPlayer.currentTrackIndex].track
             const { sound, status } = await Audio.Sound.createAsync(
-                { uri: audioPlayer.currentTrack.preview_url },
+                { uri: currentTrack.preview_url },
                 { shouldPlay: playing },
                 _onPlaybackStatusUpdate
             )
@@ -100,17 +113,14 @@ export default BigButton = () => {
     const handlePlayPause = async () => {
         const isPlaying = audioPlayer.status.isPlaying
         isPlaying ? await playbackInstance.pauseAsync() : await playbackInstance.playAsync()
-        setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: { isPlaying: !isPlaying } }))
     }
-
-
 
     const _onPressButton = () => {
         audioPlayer.status && handlePlayPause()
     }
 
     const getIconName = () => {
-        return audioPlayer.status ? (audioPlayer.status.isPlaying ? 'md-pause' : 'md-play') : null
+        return audioPlayer.status.uri ? (audioPlayer.status.isPlaying ? 'md-pause' : 'md-play') : null
     }
 
     return (

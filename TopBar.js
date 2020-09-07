@@ -27,8 +27,6 @@ export default function TopBar() {
             setIsSwitchOn(true)
             connectDms(deviceUser.deviceId)
                 .then(_userInfo => {
-                    console.log('USER:', _userInfo)
-
                     if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
                         setDeviceUser(deviceUser => ({
                             ...deviceUser,
@@ -59,7 +57,8 @@ export default function TopBar() {
         <View style={styles.topBar}>
             <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
             <Text style={styles.text}>{isSwitchOn && deviceUser.displayName ? `${deviceUser.displayName}: Online` : `Offline`}</Text>
-            <Text style={styles.text}>{audioPlayer.selectedPlaylist && audioPlayer.currentTrack && `${audioPlayer.selectedPlaylist.name}: ${audioPlayer.currentTrack.name}`}</Text>
+            <Text style={styles.text}>{  audioPlayer.status.uri &&
+            `${audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name}: ${audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name}`}</Text>
         </View>
     )
 }
