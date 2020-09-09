@@ -6,11 +6,12 @@ import {
     Text
 } from 'react-native'
 import Constants from 'expo-constants'
-const PROXY_SERVER = Constants.manifest.extra.proxyUrl
-import { DeviceUserContext } from './device-user-context'
-import { DialogContext } from './dialog-context'
+const proxyUrl = Constants.manifest.extra.proxyUrl
+
+import { DeviceUserContext } from './_contexts/device-user-context'
+import { DialogContext } from './_contexts/dialog-context'
 import { connectDms } from './AwClient'
-import { AudioPlayerContext } from './audio-player-context'
+import { AudioPlayerContext } from './_contexts/audio-player-context'
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
@@ -25,7 +26,7 @@ export default function TopBar() {
     const onToggleSwitch = () => {
         if (!isSwitchOn) {
             setIsSwitchOn(true)
-            connectDms(deviceUser.deviceId)
+            connectDms(proxyUrl, deviceUser.deviceId)
                 .then(_userInfo => {
                     if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
                         setDeviceUser(deviceUser => ({

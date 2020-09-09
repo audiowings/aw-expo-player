@@ -9,9 +9,9 @@ import TopBar from './TopBar'
 import BigButton from './BigButton'
 import PlaylistsDialog from './PlaylistsDialog'
 import LoginLinkDialog from './LoginLinkDialog'
-import DeviceUserProvider from './device-user-context'
-import AudioPlayerProvider from './audio-player-context'
-import DialogProvider from './dialog-context'
+import DeviceUserProvider from './_contexts/device-user-context'
+import AudioPlayerProvider from './_contexts/audio-player-context'
+import DialogProvider from './_contexts/dialog-context'
 
 export default function App() {
 

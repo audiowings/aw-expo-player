@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { Portal, Button, Dialog, Paragraph } from 'react-native-paper'
-import { DialogContext } from './dialog-context'
+import { DialogContext } from './_contexts/dialog-context'
 
 export default function LoginLinkDialog() {
   const [dialogState, setDialogState] = useContext(DialogContext)

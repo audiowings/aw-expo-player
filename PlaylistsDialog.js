@@ -1,11 +1,14 @@
 import React, { useContext } from 'react'
 import { Portal, Button, Dialog, Paragraph } from 'react-native-paper'
-import { DialogContext } from './dialog-context'
-import { DeviceUserContext } from './device-user-context'
-import { AudioPlayerContext } from './audio-player-context'
+import { DialogContext } from './_contexts/dialog-context'
+import { DeviceUserContext } from './_contexts/device-user-context'
+import { AudioPlayerContext } from './_contexts/audio-player-context'
 import { getPlaylist } from './AwClient'
+import Constants from 'expo-constants'
+const proxyUrl = Constants.manifest.extra.proxyUrl
 
 export default function PlaylistsDialog() {
+
   const [deviceUser] = useContext(DeviceUserContext)
   const [dialogState, setDialogState] = useContext(DialogContext)
   const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
@@ -15,7 +18,7 @@ export default function PlaylistsDialog() {
   const onDialogYes = async () => {
     hideDialog()
     const playlistUrl = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].tracks.href
-    const tracks = await getPlaylist(deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
+    const tracks = await getPlaylist(proxyUrl, deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
     setAudioPlayer(audioPlayer => ({ ...audioPlayer, tracks: tracks, currentTrackIndex: 0 }))
   }
 

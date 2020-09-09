@@ -6,11 +6,12 @@ import {
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Audio } from 'expo-av'
-import { DeviceUserContext } from './device-user-context'
-import { AudioPlayerContext } from './audio-player-context'
-import { DialogContext } from './dialog-context'
+import { DeviceUserContext } from './_contexts/device-user-context'
+import { AudioPlayerContext } from './_contexts/audio-player-context'
+import { DialogContext } from './_contexts/dialog-context'
 import { getPlaylists } from './AwClient'
-
+import Constants from 'expo-constants'
+const proxyUrl = Constants.manifest.extra.proxyUrl
 let playbackInstance = null
 
 export default BigButton = () => {
@@ -30,14 +31,15 @@ export default BigButton = () => {
 
     const showPlaylistsDialog = async () => {
         resetPlaylistIndex()
-        const _playlists = await getPlaylists(deviceUser.isOnline, deviceUser.deviceId)
+        const _playlists = await getPlaylists(proxyUrl, deviceUser.isOnline, deviceUser.deviceId)
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
         setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
     }
 
     const setAudioMode = async () => {
-        console.log('setAudioMode:')
         try {
+            console.log('setAudioMode:')
+
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
                 interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
