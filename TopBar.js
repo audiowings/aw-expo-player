@@ -5,12 +5,9 @@ import {
     Switch,
     Text
 } from 'react-native'
-import Constants from 'expo-constants'
-const proxyUrl = Constants.manifest.extra.proxyUrl
-
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { DialogContext } from './_contexts/dialog-context'
-import { connectDms } from './AwClient'
+import { connectDms, getProxyUrl } from './AwClient'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
 
 export default function TopBar() {
@@ -26,7 +23,7 @@ export default function TopBar() {
     const onToggleSwitch = () => {
         if (!isSwitchOn) {
             setIsSwitchOn(true)
-            connectDms(proxyUrl, deviceUser.deviceId)
+            connectDms(getProxyUrl(), deviceUser.deviceId)
                 .then(_userInfo => {
                     if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
                         setDeviceUser(deviceUser => ({
@@ -58,8 +55,8 @@ export default function TopBar() {
         <View style={styles.topBar}>
             <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
             <Text style={styles.text}>{isSwitchOn && deviceUser.displayName ? `${deviceUser.displayName}: Online` : `Offline`}</Text>
-            <Text style={styles.text}>{  audioPlayer.status.uri &&
-            `${audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name}: ${audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name}`}</Text>
+            <Text style={styles.text}>{audioPlayer.status.uri &&
+                `${audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name}: ${audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name}`}</Text>
         </View>
     )
 }

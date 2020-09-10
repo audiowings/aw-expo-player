@@ -8,7 +8,6 @@ const AudioPlayerProvider = (props) => {
             items: [{}]
         },
         selectedPlaylistIndex: 0,
-        currentTrackIndex: 0,
         status: {}
     })
     return (

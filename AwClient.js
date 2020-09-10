@@ -1,6 +1,18 @@
 const axios = require('axios').default;
+
+import Constants from 'expo-constants'
+
 import LOCAL_PLAYLISTS_JSON from './assets/playlists/basic-playlists.json'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
+
+
+export const getProxyUrl = () => { 
+  return Constants.manifest.extra.proxyUrl 
+}
+
+const getDeviceIdHeader = (deviceId) => { 
+  return { 'x-audiowings-deviceId': deviceId } 
+}
 
 export async function connectDms(proxyServer, deviceId) {
 
@@ -10,9 +22,7 @@ export async function connectDms(proxyServer, deviceId) {
     }
     const options = {
       method: 'GET',
-      headers: {
-        'X-Audiowings-DeviceId': deviceId,
-      }
+      headers: getDeviceIdHeader(deviceId)
     }
     const response = await axios(`${proxyServer}/connect/`, options)
     const userInfo = await response.data
@@ -26,9 +36,7 @@ async function getProviderPlaylists(proxyServer, deviceId) {
   try {
     const options = {
       method: 'GET',
-      headers: {
-        'X-Audiowings-DeviceId': deviceId,
-      }
+      headers: getDeviceIdHeader(deviceId)
     }
     const response = await axios(`${proxyServer}/playlists/`, options)
     const playlists = await response.data
@@ -52,24 +60,25 @@ exports.getPlaylists = async (proxyServer, isOnline, deviceId) => {
   return isOnline ? await getProviderPlaylists(proxyServer, deviceId) : await getLocalPlaylists()
 }
 
-export async function getProviderPlaylist(proxyServer, deviceId, playlistUrl) {
+async function getProviderPlaylist(proxyServer, deviceId, playlistUrl) {
   try {
     const options = {
       method: 'GET',
       headers: {
-        'x-audiowings-deviceid': deviceId,
+        ...getDeviceIdHeader(deviceId),
         'x-audiowings-playlist-url': playlistUrl
       }
     }
     const response = await axios(`${proxyServer}/playlist/`, options)
-    const playlist = await response.data
-    console.log('playlist', playlist)
-    return playlist.items
+    const playlist = await response.data.items
+    return playlist
   }
   catch (error) {
     return console.log(':( playlist Request failed', error)
   }
 }
+
+getLocalPlaylist = () => true
 
 exports.getPlaylist = async (proxyServer, isOnline, deviceId, playlistUrl) => {
   return isOnline ? await getProviderPlaylist(proxyServer, deviceId, playlistUrl) : await getLocalPlaylist()

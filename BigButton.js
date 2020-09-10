@@ -9,37 +9,35 @@ import { Audio } from 'expo-av'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
 import { DialogContext } from './_contexts/dialog-context'
-import { getPlaylists } from './AwClient'
-import Constants from 'expo-constants'
-const proxyUrl = Constants.manifest.extra.proxyUrl
-let playbackInstance = null
+import { getPlaylists, getProxyUrl } from './AwClient'
 
-export default BigButton = () => {
+let playbackInstance = null
+let currentTrackIndex = 0
+
+export default function BigButton() {
     const [deviceUser] = useContext(DeviceUserContext)
     const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
-    const [dialogState, setDialogState] = useContext(DialogContext)
+    const [, setDialogState] = useContext(DialogContext)
 
     useEffect(() => {
         setAudioMode()
     }, [])
 
     useEffect(() => {
-        audioPlayer.tracks && loadNewPlaybackInstance(true)
-    }, [audioPlayer.tracks ])
+        audioPlayer.tracks && loadNewPlaybackInstance(audioPlayer.currentTrackIndex, true)
+    }, [audioPlayer.tracks])
 
     const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
 
     const showPlaylistsDialog = async () => {
         resetPlaylistIndex()
-        const _playlists = await getPlaylists(proxyUrl, deviceUser.isOnline, deviceUser.deviceId)
+        const _playlists = await getPlaylists(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId)
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
         setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
     }
 
     const setAudioMode = async () => {
         try {
-            console.log('setAudioMode:')
-
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
                 interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -54,21 +52,12 @@ export default BigButton = () => {
         }
     }
 
-    _onPlaybackStatusUpdate = status => {
-        console.log('_onPlaybackStatusUpdate status:', {
-            justfin: status.didJustFinish, 
-            playing: status.isPlaying, 
-            buffering: status.isBuffering, 
-            trackname: audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name,
-            trackIndex: audioPlayer.currentTrackIndex
-        })
+    const _onPlaybackStatusUpdate = status => {
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status }))
-
-
         if (status.isLoaded) {
             if (status.didJustFinish && !status.isLooping) {
-                advanceTrackIndex()
-                loadNewPlaybackInstance(true)
+                // set isPlaying depending on whether were on the last track in the list...
+                loadNewPlaybackInstance(getNextTrackIndex(), ((currentTrackIndex + 1) < audioPlayer.tracks.length))
             }
         } else {
             if (status.error) {
@@ -77,32 +66,26 @@ export default BigButton = () => {
         }
     }
 
-    const advanceTrackIndex = () => {
-        const notLastItem = audioPlayer.currentTrackIndex + 1 < audioPlayer.tracks.length
-        const nextItemIndex = notLastItem ? audioPlayer.currentTrackIndex + 1 : 0
-        setAudioPlayer(audioPlayer => ({ ...audioPlayer, currentTrackIndex: nextItemIndex }))
+    const getNextTrackIndex = () => {
+        return (currentTrackIndex + 1) % audioPlayer.tracks.length
     }
 
-    const loadNewPlaybackInstance = async (playing) => {
-        console.log('loadNewPlaybackInstance:')
-        console.log('playbackInstance != null:',playbackInstance != null )
-
+    const loadNewPlaybackInstance = async (trackIndex, playing) => {
         if (playbackInstance != null) {
-            console.log('Unloading playback instance...')
             await playbackInstance.unloadAsync()
             playbackInstance = null
         }
 
         try {
-            const currentTrack = audioPlayer.tracks[audioPlayer.currentTrackIndex].track
+            const currentTrack = audioPlayer.tracks[trackIndex].track
             const { sound, status } = await Audio.Sound.createAsync(
                 { uri: currentTrack.preview_url },
                 { shouldPlay: playing },
                 _onPlaybackStatusUpdate
             )
             playbackInstance = sound
-            setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status }))
-
+            setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status, currentTrackIndex: trackIndex }))
+            currentTrackIndex = trackIndex
         } catch (error) {
             console.log('Error:', error)
         }
