@@ -33,9 +33,8 @@ export default function BigButton() {
 
     useEffect(() => {
         audioPlayer.tracks && loadNewPlaybackInstance(audioPlayer.currentTrackIndex, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [audioPlayer.tracks])
-
-
 
     const setAudioMode = async () => {
         try {
@@ -73,7 +72,6 @@ export default function BigButton() {
 
     // Increment index, cycling through to zero when end of list is reached
     const getNextIndex = (currentIndex, list, shouldIncrement = true) => {
-        console.log('Advancing index from:', currentIndex)
         return shouldIncrement
             ? (currentIndex + 1) % list.length
             : (currentIndex === 0 ? (list.length - 1) : (currentIndex - 1))
@@ -93,10 +91,7 @@ export default function BigButton() {
                 _onPlaybackStatusUpdate
             )
             playbackInstance = sound
-            setAudioPlayer(audioPlayer => ({
-                ...audioPlayer, status: status,
-                currentTrackIndex: trackIndex
-            }))
+            setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status, currentTrackIndex: trackIndex }))
             currentTrackIndex = trackIndex
         } catch (error) {
             console.log('Error:', error)
@@ -111,8 +106,16 @@ export default function BigButton() {
         setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.playlistSelect }))
     }
 
-    const giveLoginInstructions = () => {
-
+    const connectToProxy = () => {
+        connectDms(getProxyUrl(), deviceUser.deviceId).then(_userInfo => {
+            if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
+                setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: true, displayName: _userInfo.displayName }))
+                if (_userInfo.authMessage) {
+                    ContextsEnum.loginInstructions.body = _userInfo.authMessage
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.loginInstructions }))
+                }
+            }
+        })
     }
 
     // presents the next context level up
@@ -141,21 +144,17 @@ export default function BigButton() {
         }
         if (nativeEvent.state === State.END) {
             endEvent = nativeEvent
+            // User has swiped right the index should increment, otherwise it will decerement
             const shouldIncrement = beginEvent.x < endEvent.x
             // Depends on currentContext
             switch (dialogState.currentContext) {
-                case ContextsEnum.connectionModeSelect: {
-                    setDeviceUser(deviceUser => ({ ...deviceUser, connectionModeOptionOnline: !deviceUser.connectionModeOptionOnline }))
+                case ContextsEnum.connectionModeSelect: {setDeviceUser(deviceUser => ({ ...deviceUser, connectionModeOptionOnline: !deviceUser.connectionModeOptionOnline }))
                 } break
                 case ContextsEnum.audioTypeSelect: {
-                    setAudioPlayer(audioPlayer => ({
-                        ...audioPlayer, audioTypeIndex: getNextIndex(audioPlayer.audioTypeIndex, ContextsEnum.audioTypeSelect.options, shouldIncrement)
-                    }))
+                    setAudioPlayer(audioPlayer => ({...audioPlayer, audioTypeIndex: getNextIndex(audioPlayer.audioTypeIndex, ContextsEnum.audioTypeSelect.options, shouldIncrement)}))
                 } break
                 case ContextsEnum.playlistSelect: {
-                    setAudioPlayer(audioPlayer => ({
-                        ...audioPlayer, selectedPlaylistIndex: getNextIndex(audioPlayer.selectedPlaylistIndex, audioPlayer.playlists, shouldIncrement)
-                    }))
+                    setAudioPlayer(audioPlayer => ({...audioPlayer, selectedPlaylistIndex: getNextIndex(audioPlayer.selectedPlaylistIndex, audioPlayer.playlists, shouldIncrement)}))
                 } break
                 case ContextsEnum.trackSelect: {
                     loadNextTrack(shouldIncrement)
@@ -169,18 +168,7 @@ export default function BigButton() {
         if (event.nativeEvent.state === State.ACTIVE) {
             switch (dialogState.currentContext) {
                 case ContextsEnum.connectionModeSelect: {
-                    if (deviceUser.connectionModeOptionOnline) {
-                        connectDms(getProxyUrl(), deviceUser.deviceId)
-                            .then(_userInfo => {
-                                if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
-                                    setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: true, displayName: _userInfo.displayName }))
-                                    if (_userInfo.authMessage) {
-                                        ContextsEnum.loginInstructions.body = _userInfo.authMessage
-                                        setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.loginInstructions }))
-                                    }
-                                }
-                            })
-                    }
+                    deviceUser.connectionModeOptionOnline && connectToProxy()
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
                 } break
                 case ContextsEnum.audioTypeSelect: {
@@ -189,13 +177,18 @@ export default function BigButton() {
                 case ContextsEnum.playlistSelect: {
                     const playlistUrl = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].tracks.href
                     const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
+                    ContextsEnum.trackSelect.subject = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name
+
                     setAudioPlayer(audioPlayer => ({ ...audioPlayer, tracks: tracks, currentTrackIndex: 0 }))
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.trackSelect }))
                 } break
                 case ContextsEnum.trackSelect: {
                     audioPlayer.status && handlePlayPause()
                 } break
+                case ContextsEnum.loginInstructions: {
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
+                }
             }
-
         }
     }
 
@@ -225,10 +218,10 @@ export default function BigButton() {
             }
             case ContextsEnum.playlistSelect: {
                 return audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name
-            } 
+            }
             case ContextsEnum.trackSelect: {
-                loadNextTrack()
-            } break
+                return audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name
+            }
         }
     }
 
@@ -241,7 +234,7 @@ export default function BigButton() {
                     <View style={styles.big_button} >
                         <Ionicons name={getIconName()} size={72} />
                         <View style={styles.prompt}>
-                            <Text style={styles.promptContent}>{'Choose ' + dialogState.currentContext.subject}</Text>
+                            <Text style={styles.promptContent}>{dialogState.currentContext.subject}</Text>
                             <Text style={styles.promptContent}>{getOptionText()}</Text>
                         </View>
                     </View>

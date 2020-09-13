@@ -11,6 +11,7 @@ const AudioPlayerProvider = (props) => {
     })
     return (
         <AudioPlayerContext.Provider value={[audioPlayer, setAudioPlayer]}>
+            {/* eslint-disable-next-line react/prop-types*/}
             {props.children}
         </AudioPlayerContext.Provider>
     )

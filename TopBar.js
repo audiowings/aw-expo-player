@@ -7,23 +7,14 @@ import {
 } from 'react-native'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { DialogContext, ContextsEnum } from './_contexts/dialog-context'
-import { connectDms, getProxyUrl } from './AwClient'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
-    const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
+    const [deviceUser] = useContext(DeviceUserContext)
     const [, setDialogState] = useContext(DialogContext)
     const [audioPlayer] = useContext(AudioPlayerContext)
 
-    const showDialog = (title, body) => {
-        setDialogState(dialogState => ({
-            ...dialogState,
-            loginLinkDialogVisible: true,
-            loginLinkDialogTitle: title,
-            loginLinkDialogBody: body
-        }))
-    }
 
     const onToggleSwitch = () => {
 
@@ -31,35 +22,9 @@ export default function TopBar() {
         if (!isSwitchOn) {
             setIsSwitchOn(true)
             setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
-
-            // TODO: move to BigButton _onSingleTap switch{ (dialogState.currentContext) {case ContextsEnum.connectionModeSelect: { 
-        //     connectDms(getProxyUrl(), deviceUser.deviceId)
-        //         .then(_userInfo => {
-        //             if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
-        //                 setDeviceUser(deviceUser => ({
-        //                     ...deviceUser,
-        //                     isOnline: true,
-        //                     displayName: _userInfo.displayName
-        //                 }))
-        //                 if (_userInfo.authMessage) {
-        //                     const title = 'Login via browser'
-        //                     const body = _userInfo.authMessage
-        //                     showDialog(title, body)
-        //                 }
-        //             } else {
-        //                 setIsSwitchOn(false)
-        //             }
-
-        //         })
         } else {
             setIsSwitchOn(false)
             setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.notSet }))
-
-            // setDeviceUser(deviceUser => ({
-            //     ...deviceUser,
-            //     isOnline: false,
-            //     displayName: ''
-            // }))
         }
     }
 

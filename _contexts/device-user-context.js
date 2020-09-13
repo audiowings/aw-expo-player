@@ -25,6 +25,7 @@ const DeviceUserProvider = (props) => {
 
   return (
     <DeviceUserContext.Provider value={[deviceUser, setDeviceUser]}>
+      {/* eslint-disable-next-line react/prop-types*/}
       {props.children}
     </DeviceUserContext.Provider>
   );
