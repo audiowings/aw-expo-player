@@ -2,22 +2,30 @@ import React, { useContext, useEffect } from 'react'
 import {
     StyleSheet,
     View,
-    TouchableOpacity
+    Text
 } from 'react-native'
+import {
+    LongPressGestureHandler,
+    TapGestureHandler,
+    FlingGestureHandler,
+    Directions,
+    State,
+} from 'react-native-gesture-handler'
 import { Ionicons } from '@expo/vector-icons'
 import { Audio } from 'expo-av'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
-import { DialogContext } from './_contexts/dialog-context'
-import { getPlaylists, getProxyUrl } from './AwClient'
+import { DialogContext, ContextsEnum } from './_contexts/dialog-context'
+import { connectDms, getPlaylists, getPlaylist, getProxyUrl } from './AwClient'
 
 let playbackInstance = null
 let currentTrackIndex = 0
+let beginEvent, endEvent
 
 export default function BigButton() {
-    const [deviceUser] = useContext(DeviceUserContext)
+    const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
     const [audioPlayer, setAudioPlayer] = useContext(AudioPlayerContext)
-    const [, setDialogState] = useContext(DialogContext)
+    const [dialogState, setDialogState] = useContext(DialogContext)
 
     useEffect(() => {
         setAudioMode()
@@ -27,14 +35,7 @@ export default function BigButton() {
         audioPlayer.tracks && loadNewPlaybackInstance(audioPlayer.currentTrackIndex, true)
     }, [audioPlayer.tracks])
 
-    const resetPlaylistIndex = () => setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
 
-    const showPlaylistsDialog = async () => {
-        resetPlaylistIndex()
-        const _playlists = await getPlaylists(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId)
-        setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
-        setDialogState(dialogState => ({ ...dialogState, playlistsDialogVisible: true }))
-    }
 
     const setAudioMode = async () => {
         try {
@@ -57,17 +58,25 @@ export default function BigButton() {
         if (status.isLoaded) {
             if (status.didJustFinish && !status.isLooping) {
                 // set isPlaying depending on whether were on the last track in the list...
-                loadNewPlaybackInstance(getNextTrackIndex(), ((currentTrackIndex + 1) < audioPlayer.tracks.length))
+                loadNextTrack((currentTrackIndex + 1) < audioPlayer.tracks.length)
             }
         } else {
             if (status.error) {
-                console.log(`FATAL PLAYER ERROR: ${status.error}`);
+                console.log(`FATAL PLAYER ERROR: ${status.error}`)
             }
         }
     }
 
-    const getNextTrackIndex = () => {
-        return (currentTrackIndex + 1) % audioPlayer.tracks.length
+    const loadNextTrack = (shouldAdvance = true) => {
+        loadNewPlaybackInstance(getNextIndex(currentTrackIndex, audioPlayer.tracks), shouldAdvance)
+    }
+
+    // Increment index, cycling through to zero when end of list is reached
+    const getNextIndex = (currentIndex, list, shouldIncrement = true) => {
+        console.log('Advancing index from:', currentIndex)
+        return shouldIncrement
+            ? (currentIndex + 1) % list.length
+            : (currentIndex === 0 ? (list.length - 1) : (currentIndex - 1))
     }
 
     const loadNewPlaybackInstance = async (trackIndex, playing) => {
@@ -84,36 +93,161 @@ export default function BigButton() {
                 _onPlaybackStatusUpdate
             )
             playbackInstance = sound
-            setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status, currentTrackIndex: trackIndex }))
+            setAudioPlayer(audioPlayer => ({
+                ...audioPlayer, status: status,
+                currentTrackIndex: trackIndex
+            }))
             currentTrackIndex = trackIndex
         } catch (error) {
             console.log('Error:', error)
         }
     }
 
-    const _onLongPressButton = () => {
-        showPlaylistsDialog()
+
+    const showPlaylistSelector = async () => {
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
+        const _playlists = await getPlaylists(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId)
+        setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
+        setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.playlistSelect }))
     }
+
+    const giveLoginInstructions = () => {
+
+    }
+
+    // presents the next context level up
+    const _onLongPressButton = event => {
+        if (event.nativeEvent.state === State.ACTIVE) {
+            switch (dialogState.currentContext) {
+                case ContextsEnum.audioTypeSelect: {
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
+                } break
+                case ContextsEnum.playlistSelect: {
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
+                } break
+                case ContextsEnum.trackSelect: {
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.playlistSelect }))
+                    showPlaylistSelector()
+                } break
+            }
+
+        }
+    }
+
+    // moves to the next / previous item in the list
+    const _onFling = ({ nativeEvent }) => {
+        if (nativeEvent.state === State.BEGAN) {
+            beginEvent = nativeEvent
+        }
+        if (nativeEvent.state === State.END) {
+            endEvent = nativeEvent
+            const shouldIncrement = beginEvent.x < endEvent.x
+            // Depends on currentContext
+            switch (dialogState.currentContext) {
+                case ContextsEnum.connectionModeSelect: {
+                    setDeviceUser(deviceUser => ({ ...deviceUser, connectionModeOptionOnline: !deviceUser.connectionModeOptionOnline }))
+                } break
+                case ContextsEnum.audioTypeSelect: {
+                    setAudioPlayer(audioPlayer => ({
+                        ...audioPlayer, audioTypeIndex: getNextIndex(audioPlayer.audioTypeIndex, ContextsEnum.audioTypeSelect.options, shouldIncrement)
+                    }))
+                } break
+                case ContextsEnum.playlistSelect: {
+                    setAudioPlayer(audioPlayer => ({
+                        ...audioPlayer, selectedPlaylistIndex: getNextIndex(audioPlayer.selectedPlaylistIndex, audioPlayer.playlists, shouldIncrement)
+                    }))
+                } break
+                case ContextsEnum.trackSelect: {
+                    loadNextTrack(shouldIncrement)
+                } break
+            }
+        }
+    }
+
+    // selects the current option
+    const _onSingleTap = async event => {
+        if (event.nativeEvent.state === State.ACTIVE) {
+            switch (dialogState.currentContext) {
+                case ContextsEnum.connectionModeSelect: {
+                    if (deviceUser.connectionModeOptionOnline) {
+                        connectDms(getProxyUrl(), deviceUser.deviceId)
+                            .then(_userInfo => {
+                                if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
+                                    setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: true, displayName: _userInfo.displayName }))
+                                    if (_userInfo.authMessage) {
+                                        ContextsEnum.loginInstructions.body = _userInfo.authMessage
+                                        setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.loginInstructions }))
+                                    }
+                                }
+                            })
+                    }
+                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
+                } break
+                case ContextsEnum.audioTypeSelect: {
+                    showPlaylistSelector()
+                } break
+                case ContextsEnum.playlistSelect: {
+                    const playlistUrl = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].tracks.href
+                    const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
+                    setAudioPlayer(audioPlayer => ({ ...audioPlayer, tracks: tracks, currentTrackIndex: 0 }))
+                } break
+                case ContextsEnum.trackSelect: {
+                    audioPlayer.status && handlePlayPause()
+                } break
+            }
+
+        }
+    }
+
+
 
     const handlePlayPause = async () => {
         const isPlaying = audioPlayer.status.isPlaying
         isPlaying ? await playbackInstance.pauseAsync() : await playbackInstance.playAsync()
     }
 
-    const _onPressButton = () => {
-        audioPlayer.status && handlePlayPause()
+    const getIconName = () => {
+        return audioPlayer.status.uri ? (audioPlayer.status.isPlaying ? 'md-pause' : 'md-play') : 'md-list'
     }
 
-    const getIconName = () => {
-        return audioPlayer.status.uri ? (audioPlayer.status.isPlaying ? 'md-pause' : 'md-play') : null
+    // presents current option to user
+    const getOptionText = () => {
+        switch (dialogState.currentContext) {
+            case ContextsEnum.connectionModeSelect: {
+                return deviceUser.connectionModeOptionOnline ? 'Online' : 'Offline'
+            }
+            case ContextsEnum.loginInstructions: {
+                console.log('dialogState.currentContext.loginInstructions', dialogState.currentContext)
+                return dialogState.currentContext.subject
+            }
+            case ContextsEnum.audioTypeSelect: {
+                return `${ContextsEnum.audioTypeSelect.options[audioPlayer.audioTypeIndex]}`
+            }
+            case ContextsEnum.playlistSelect: {
+                return audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name
+            } 
+            case ContextsEnum.trackSelect: {
+                loadNextTrack()
+            } break
+        }
     }
 
     return (
-        <View style={{ flex: 1 }}>
-            <TouchableOpacity onLongPress={_onLongPressButton} onPress={_onPressButton} style={{ flex: 1 }}>
-                <View style={styles.big_button} ><Ionicons name={getIconName()} size={72} /></View>
-            </TouchableOpacity>
-        </View>
+        <LongPressGestureHandler onHandlerStateChange={_onLongPressButton} minDurationMs={800}>
+            <TapGestureHandler onHandlerStateChange={_onSingleTap}>
+                <FlingGestureHandler
+                    direction={Directions.RIGHT | Directions.LEFT}
+                    onHandlerStateChange={_onFling}>
+                    <View style={styles.big_button} >
+                        <Ionicons name={getIconName()} size={72} />
+                        <View style={styles.prompt}>
+                            <Text style={styles.promptContent}>{'Choose ' + dialogState.currentContext.subject}</Text>
+                            <Text style={styles.promptContent}>{getOptionText()}</Text>
+                        </View>
+                    </View>
+                </FlingGestureHandler>
+            </TapGestureHandler>
+        </LongPressGestureHandler>
     )
 }
 
@@ -124,5 +258,17 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         backgroundColor: '#222222'
+    },
+    prompt: {
+        position: 'absolute',
+        top: 0,
+        alignSelf: 'flex-start',
+        padding: 16
+    },
+    promptContent: {
+        color: '#CCCCCC',
+        alignSelf: 'flex-start',
+        height: 56,
+        fontSize: 24
     }
-});
+})

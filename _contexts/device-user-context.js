@@ -4,7 +4,10 @@ import * as Network from 'expo-network';
 export const DeviceUserContext = createContext([{}, () => { }]);
 
 const DeviceUserProvider = (props) => {
-  const [deviceUser, setDeviceUser] = useState({})
+  const [deviceUser, setDeviceUser] = useState({
+    online: false,
+    connectionModeOptionOnline: false
+  })
   useEffect(() => {
     getDeviceId()
   }, [])

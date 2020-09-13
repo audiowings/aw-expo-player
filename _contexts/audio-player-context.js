@@ -4,10 +4,9 @@ export const AudioPlayerContext = React.createContext([{}, () => { }])
 
 const AudioPlayerProvider = (props) => {
     const [audioPlayer, setAudioPlayer] = useState({
-        playlists: {
-            items: [{}]
-        },
+        playlists: { items: [{}] },
         selectedPlaylistIndex: 0,
+        audioTypeIndex: 0,
         status: {}
     })
     return (

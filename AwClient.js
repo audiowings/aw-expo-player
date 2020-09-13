@@ -78,7 +78,7 @@ async function getProviderPlaylist(proxyServer, deviceId, playlistUrl) {
   }
 }
 
-getLocalPlaylist = () => true
+const getLocalPlaylist = () => true
 
 exports.getPlaylist = async (proxyServer, isOnline, deviceId, playlistUrl) => {
   return isOnline ? await getProviderPlaylist(proxyServer, deviceId, playlistUrl) : await getLocalPlaylist()
