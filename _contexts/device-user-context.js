@@ -1,23 +1,25 @@
 import React, { useState, createContext, useEffect } from 'react'
-import * as Network from 'expo-network';
-import * as Device from 'expo-device';
-
+import {getDeviceDetails, getNetworkState} from '../_utils/networkDevice'
 
 export const DeviceUserContext = createContext([{}, () => { }]);
 
-const DeviceUserProvider = (props) => {
+const DeviceUserProvider = async (props) => {
   const [deviceUser, setDeviceUser] = useState({
-    online: false,
+    isOnline: false,
     connectionModeOptionOnline: false
   })
   useEffect(() => {
-    getDeviceId()
+    getDeviceInfo()
   }, [])
 
-  const getDeviceId = async () => {
-    const _deviceId = Device.isDevice ? await Network.getMacAddressAsync() : 'DE:6C:5D:45:11:DD'
-    console.log(Device.deviceName, (Device.isDevice ? 'Physical' : 'Emulator'), 'DeviceId', _deviceId)
-    setDeviceUser(deviceUser => ({ ...deviceUser, deviceId: _deviceId, isOnline: false }))
+  const getDeviceInfo = async () => {
+    // If real device, set deviceId to its MAC Address otherwise, (emulator) use hardcoded value
+    const deviceDetails = await getDeviceDetails()
+    const networkState = await getNetworkState()
+
+    console.log('deviceDetails', deviceDetails, 'networkState', networkState)
+
+    setDeviceUser(deviceUser => ({ ...deviceUser, deviceDetails: deviceDetails, networkState: networkState }))
   }
 
   return (

@@ -1,6 +1,5 @@
 import { Audio } from 'expo-av'
 
-
 export const setAudioMode = async () => {
     try {
         await Audio.setAudioModeAsync({

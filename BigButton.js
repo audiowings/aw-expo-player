@@ -83,15 +83,15 @@ export default function BigButton() {
 
     const showPlaylistSelector = async () => {
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: 0 }))
-        const _playlists = await getPlaylists(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId)
+        const _playlists = await getPlaylists(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceDetails.deviceId)
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, playlists: _playlists }))
         setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.playlistSelect }))
     }
 
     const connectToProxy = () => {
-        connectDms(getProxyUrl(), deviceUser.deviceId).then(_userInfo => {
-            if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceId) {
-                setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: true, displayName: _userInfo.displayName }))
+        connectDms(getProxyUrl(), deviceUser.deviceDetails.deviceId).then(_userInfo => {
+            if (_userInfo.deviceId && _userInfo.deviceId === deviceUser.deviceDetails.deviceId) {
+                setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: true, userInfo: _userInfo }))
                 if (_userInfo.authMessage) {
                     ContextsEnum.loginInstructions.body = _userInfo.authMessage
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.loginInstructions }))
@@ -162,7 +162,7 @@ export default function BigButton() {
                 } break
                 case ContextsEnum.playlistSelect: {
                     const playlistUrl = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].tracks.href
-                    const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
+                    const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceDetails.deviceId, playlistUrl)
                     ContextsEnum.trackSelect.subject = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name
 
                     setAudioPlayer(audioPlayer => ({ ...audioPlayer, tracks: tracks, currentTrackIndex: 0 }))

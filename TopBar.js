@@ -7,33 +7,30 @@ import {
 } from 'react-native'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { DialogContext, ContextsEnum } from './_contexts/dialog-context'
-import { AudioPlayerContext } from './_contexts/audio-player-context'
 
 export default function TopBar() {
     const [isSwitchOn, setIsSwitchOn] = React.useState(false)
-    const [deviceUser] = useContext(DeviceUserContext)
+    const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
     const [, setDialogState] = useContext(DialogContext)
-    const [audioPlayer] = useContext(AudioPlayerContext)
 
 
     const onToggleSwitch = () => {
-
-        // TODO: change functionality to device active toggle
         if (!isSwitchOn) {
             setIsSwitchOn(true)
+            // TODO: Check network state
+            
             setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
         } else {
             setIsSwitchOn(false)
             setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.notSet }))
+            setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: false, userInfo: {} }))
         }
     }
 
     return (
         <View style={styles.topBar}>
             <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
-            <Text style={styles.text}>{isSwitchOn && deviceUser.displayName ? `${deviceUser.displayName}: Online` : `Offline`}</Text>
-            <Text style={styles.text}>{audioPlayer.status.uri &&
-                `${audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].name}: ${audioPlayer.tracks[audioPlayer.currentTrackIndex].track.name}`}</Text>
+            <Text style={styles.text}>{isSwitchOn && deviceUser.userInfo ? `${deviceUser.userInfo.displayName}` : ``}</Text>
         </View>
     )
 }

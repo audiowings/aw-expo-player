@@ -1,10 +1,8 @@
 const axios = require('axios').default;
-
 import Constants from 'expo-constants'
 
 import LOCAL_PLAYLISTS_JSON from '../assets/playlists/basic-playlists.json'
 const LOCAL_PLAYLISTS = LOCAL_PLAYLISTS_JSON.items
-
 
 export const getProxyUrl = () => { 
   return Constants.manifest.extra.proxyUrl 

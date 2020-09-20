@@ -16,7 +16,7 @@ export default function PlaylistsDialog() {
   const onDialogYes = async () => {
     hideDialog()
     const playlistUrl = audioPlayer.playlists[audioPlayer.selectedPlaylistIndex].tracks.href
-    const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceId, playlistUrl)
+    const tracks = await getPlaylist(getProxyUrl(), deviceUser.isOnline, deviceUser.deviceDetails.deviceId, playlistUrl)
     setAudioPlayer(audioPlayer => ({ ...audioPlayer, tracks: tracks, currentTrackIndex: 0 }))
   }
 
