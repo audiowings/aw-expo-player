@@ -1,5 +1,7 @@
 import React, { useState, createContext, useEffect } from 'react'
 import * as Network from 'expo-network';
+import * as Device from 'expo-device';
+
 
 export const DeviceUserContext = createContext([{}, () => { }]);
 
@@ -13,13 +15,8 @@ const DeviceUserProvider = (props) => {
   }, [])
 
   const getDeviceId = async () => {
-    let _deviceId = await Network.getMacAddressAsync()
-
-    // TODO: remove these lines post development      
-    const devDeviceId = 'DE:6C:5D:45:11:DD'
-    console.log('Actual _deviceId', _deviceId, 'switched to', devDeviceId)
-    _deviceId = devDeviceId
-
+    const _deviceId = Device.isDevice ? await Network.getMacAddressAsync() : 'DE:6C:5D:45:11:DD'
+    console.log(Device.deviceName, (Device.isDevice ? 'Physical' : 'Emulator'), 'DeviceId', _deviceId)
     setDeviceUser(deviceUser => ({ ...deviceUser, deviceId: _deviceId, isOnline: false }))
   }
 

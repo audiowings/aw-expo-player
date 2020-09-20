@@ -16,7 +16,8 @@ import { Audio } from 'expo-av'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
 import { DialogContext, ContextsEnum } from './_contexts/dialog-context'
-import { connectDms, getPlaylists, getPlaylist, getProxyUrl } from './AwClient'
+import { connectDms, getPlaylists, getPlaylist, getProxyUrl } from './_utils/proxyClient'
+import {setAudioMode, getNextIndex} from './_utils/audioPlayer'
 
 let playbackInstance = null
 let currentTrackIndex = 0
@@ -33,30 +34,14 @@ export default function BigButton() {
 
     useEffect(() => {
         audioPlayer.tracks && loadNewPlaybackInstance(audioPlayer.currentTrackIndex, true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [audioPlayer.tracks])
-
-    const setAudioMode = async () => {
-        try {
-            await Audio.setAudioModeAsync({
-                allowsRecordingIOS: false,
-                interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-                playsInSilentModeIOS: true,
-                interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
-                shouldDuckAndroid: true,
-                staysActiveInBackground: true,
-                playThroughEarpieceAndroid: true
-            })
-        } catch (e) {
-            console.log(e)
-        }
-    }
 
     const _onPlaybackStatusUpdate = status => {
         setAudioPlayer(audioPlayer => ({ ...audioPlayer, status: status }))
         if (status.isLoaded) {
             if (status.didJustFinish && !status.isLooping) {
-                // set isPlaying depending on whether were on the last track in the list...
+                // set isPlaying depending on whether we're on the last track in the list...
                 loadNextTrack((currentTrackIndex + 1) < audioPlayer.tracks.length)
             }
         } else {
@@ -70,17 +55,14 @@ export default function BigButton() {
         loadNewPlaybackInstance(getNextIndex(currentTrackIndex, audioPlayer.tracks), shouldAdvance)
     }
 
-    // Increment index, cycling through to zero when end of list is reached
-    const getNextIndex = (currentIndex, list, shouldIncrement = true) => {
-        return shouldIncrement
-            ? (currentIndex + 1) % list.length
-            : (currentIndex === 0 ? (list.length - 1) : (currentIndex - 1))
+    const unloadPlaybackInstance = async () => {
+        await playbackInstance.unloadAsync()
+        playbackInstance = null
     }
 
     const loadNewPlaybackInstance = async (trackIndex, playing) => {
         if (playbackInstance != null) {
-            await playbackInstance.unloadAsync()
-            playbackInstance = null
+            unloadPlaybackInstance()
         }
 
         try {
@@ -129,6 +111,9 @@ export default function BigButton() {
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
                 } break
                 case ContextsEnum.trackSelect: {
+                    if (playbackInstance != null) {
+                        unloadPlaybackInstance()
+                    }
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.playlistSelect }))
                     showPlaylistSelector()
                 } break
@@ -148,13 +133,14 @@ export default function BigButton() {
             const shouldIncrement = beginEvent.x < endEvent.x
             // Depends on currentContext
             switch (dialogState.currentContext) {
-                case ContextsEnum.connectionModeSelect: {setDeviceUser(deviceUser => ({ ...deviceUser, connectionModeOptionOnline: !deviceUser.connectionModeOptionOnline }))
+                case ContextsEnum.connectionModeSelect: {
+                    setDeviceUser(deviceUser => ({ ...deviceUser, connectionModeOptionOnline: !deviceUser.connectionModeOptionOnline }))
                 } break
                 case ContextsEnum.audioTypeSelect: {
-                    setAudioPlayer(audioPlayer => ({...audioPlayer, audioTypeIndex: getNextIndex(audioPlayer.audioTypeIndex, ContextsEnum.audioTypeSelect.options, shouldIncrement)}))
+                    setAudioPlayer(audioPlayer => ({ ...audioPlayer, audioTypeIndex: getNextIndex(audioPlayer.audioTypeIndex, ContextsEnum.audioTypeSelect.options, shouldIncrement) }))
                 } break
                 case ContextsEnum.playlistSelect: {
-                    setAudioPlayer(audioPlayer => ({...audioPlayer, selectedPlaylistIndex: getNextIndex(audioPlayer.selectedPlaylistIndex, audioPlayer.playlists, shouldIncrement)}))
+                    setAudioPlayer(audioPlayer => ({ ...audioPlayer, selectedPlaylistIndex: getNextIndex(audioPlayer.selectedPlaylistIndex, audioPlayer.playlists, shouldIncrement) }))
                 } break
                 case ContextsEnum.trackSelect: {
                     loadNextTrack(shouldIncrement)
@@ -191,8 +177,6 @@ export default function BigButton() {
             }
         }
     }
-
-
 
     const handlePlayPause = async () => {
         const isPlaying = audioPlayer.status.isPlaying

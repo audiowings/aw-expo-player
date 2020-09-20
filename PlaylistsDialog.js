@@ -3,7 +3,7 @@ import { Portal, Button, Dialog, Paragraph } from 'react-native-paper'
 import { DialogContext } from './_contexts/dialog-context'
 import { DeviceUserContext } from './_contexts/device-user-context'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
-import { getPlaylist, getProxyUrl } from './AwClient'
+import { getPlaylist, getProxyUrl } from './_utils/proxyClient'
 
 export default function PlaylistsDialog() {
 

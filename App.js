@@ -7,7 +7,6 @@ import {
 import { Provider as PaperProvider } from 'react-native-paper';
 import TopBar from './TopBar'
 import BigButton from './BigButton'
-import PlaylistsDialog from './PlaylistsDialog'
 import LoginLinkDialog from './LoginLinkDialog'
 import DeviceUserProvider from './_contexts/device-user-context'
 import AudioPlayerProvider from './_contexts/audio-player-context'
@@ -24,7 +23,6 @@ export default function App() {
             <AudioPlayerProvider>
               <TopBar />
               <BigButton />
-              <PlaylistsDialog />
               <LoginLinkDialog />
             </AudioPlayerProvider>
           </DialogProvider>
