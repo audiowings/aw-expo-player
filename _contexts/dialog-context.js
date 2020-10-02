@@ -6,7 +6,7 @@ const contentChannels = ['Music', 'Workout', 'Audiobook']
 
 export const ContextsEnum = Object.freeze({
     "notSet": { index: 0 },
-    "connectionModeSelect": { index: 1, subject: 'Choose Connection Mode', online: false },
+    "connectionModeSelect": { index: 1, subject: 'Choose Connection Mode' },
     "audioTypeSelect": { index: 2, subject: 'Choose Content Channel', options: contentChannels },
     "playlistSelect": { index: 3, subject: 'Choose Playlist' },
     "trackSelect": { index: 4 },

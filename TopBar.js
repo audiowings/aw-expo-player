@@ -13,7 +13,6 @@ export default function TopBar() {
     const [deviceUser, setDeviceUser] = useContext(DeviceUserContext)
     const [, setDialogState] = useContext(DialogContext)
 
-
     const onToggleSwitch = () => {
         if (!isSwitchOn) {
             setIsSwitchOn(true)
@@ -38,6 +37,7 @@ export default function TopBar() {
 const styles = StyleSheet.create({
     topBar: {
         flexDirection: 'row',
+        paddingStart: 16,
         height: 56
     },
     text: {

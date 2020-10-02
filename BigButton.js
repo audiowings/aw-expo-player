@@ -17,7 +17,7 @@ import { DeviceUserContext } from './_contexts/device-user-context'
 import { AudioPlayerContext } from './_contexts/audio-player-context'
 import { DialogContext, ContextsEnum } from './_contexts/dialog-context'
 import { connectDms, getPlaylists, getPlaylist, getProxyUrl } from './_utils/proxyClient'
-import {setAudioMode, getNextIndex} from './_utils/audioPlayer'
+import { setAudioMode, getNextIndex } from './_utils/audioPlayer'
 
 let playbackInstance = null
 let currentTrackIndex = 0
@@ -189,12 +189,15 @@ export default function BigButton() {
 
     // presents current option to user
     const getOptionText = () => {
+        console.log('dialogState.currentContext', dialogState.currentContext)
         switch (dialogState.currentContext) {
             case ContextsEnum.connectionModeSelect: {
+                // If WIFI available give online option
+                // const isWifi = await getNetworkState().type == NetworkStateType.CELLULAR
+
                 return deviceUser.connectionModeOptionOnline ? 'Online' : 'Offline'
             }
             case ContextsEnum.loginInstructions: {
-                console.log('dialogState.currentContext.loginInstructions', dialogState.currentContext)
                 return dialogState.currentContext.subject
             }
             case ContextsEnum.audioTypeSelect: {

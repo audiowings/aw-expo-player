@@ -7,6 +7,7 @@ const getDeviceId = async (hardCodedMacAddress) => {
 }
 
 export const getDeviceDetails = async () => {
+
     return {
         deviceName: Device.deviceName,
         isRealDevice: Device.isDevice,
@@ -15,6 +16,7 @@ export const getDeviceDetails = async () => {
 }
 
 export const getNetworkState = async () => {
+
     return await Network.getNetworkStateAsync()
 }
 

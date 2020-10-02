@@ -12,6 +12,7 @@ import DeviceUserProvider from './_contexts/device-user-context'
 import AudioPlayerProvider from './_contexts/audio-player-context'
 import DialogProvider from './_contexts/dialog-context'
 
+
 export default function App() {
 
   return (
@@ -25,7 +26,7 @@ export default function App() {
               <BigButton />
               <LoginLinkDialog />
             </AudioPlayerProvider>
-          </DialogProvider>
+            </DialogProvider>
         </View>
       </DeviceUserProvider>
     </PaperProvider>
