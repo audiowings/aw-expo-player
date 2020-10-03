@@ -12,14 +12,12 @@ const DeviceUserProvider = (props) => {
     getDeviceInfo()
   }, [])
 
-  const getDeviceInfo =  () => {
+  const getDeviceInfo = async () => {
     // If real device, set deviceId to its MAC Address otherwise, (emulator) use hardcoded value
-    const deviceDetails =  getDeviceDetails()
-    const networkState =  getNetworkState()
+    const deviceDetails =  await getDeviceDetails()
+    const networkState =  await getNetworkState()
 
-    console.log('deviceDetails', deviceDetails, 'networkState', networkState)
-
-    setDeviceUser(deviceUser => ({ ...deviceUser, deviceDetails: getDeviceDetails(), networkState: networkState }))
+    setDeviceUser(deviceUser => ({ ...deviceUser, deviceDetails: deviceDetails, networkState: networkState }))
   }
 
   return (

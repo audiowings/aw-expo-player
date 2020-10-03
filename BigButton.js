@@ -100,12 +100,21 @@ export default function BigButton() {
         })
     }
 
+    // If WIFI available change current context to connectionModeSelect, otherwise set to audioTypeSelect
+    const setConnectionModeSelectIfWifi = () => {
+        if (deviceUser.networkState.type === 'WIFI') {
+            setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
+        } else {
+            setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
+        }
+    }
+
     // presents the next context level up
     const _onLongPressButton = event => {
         if (event.nativeEvent.state === State.ACTIVE) {
             switch (dialogState.currentContext) {
                 case ContextsEnum.audioTypeSelect: {
-                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
+                    setConnectionModeSelectIfWifi()
                 } break
                 case ContextsEnum.playlistSelect: {
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
@@ -154,7 +163,11 @@ export default function BigButton() {
         if (event.nativeEvent.state === State.ACTIVE) {
             switch (dialogState.currentContext) {
                 case ContextsEnum.connectionModeSelect: {
-                    deviceUser.connectionModeOptionOnline && connectToProxy()
+                    if (deviceUser.connectionModeOptionOnline) {
+                        connectToProxy()
+                    } else {
+                        setDeviceUser(deviceUser => ({ ...deviceUser, isOnline: false }))
+                    }
                     setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.audioTypeSelect }))
                 } break
                 case ContextsEnum.audioTypeSelect: {
@@ -172,7 +185,7 @@ export default function BigButton() {
                     audioPlayer.status && handlePlayPause()
                 } break
                 case ContextsEnum.loginInstructions: {
-                    setDialogState(dialogState => ({ ...dialogState, currentContext: ContextsEnum.connectionModeSelect }))
+                    setConnectionModeSelectIfWifi()
                 }
             }
         }
@@ -189,12 +202,8 @@ export default function BigButton() {
 
     // presents current option to user
     const getOptionText = () => {
-        console.log('dialogState.currentContext', dialogState.currentContext)
         switch (dialogState.currentContext) {
             case ContextsEnum.connectionModeSelect: {
-                // If WIFI available give online option
-                // const isWifi = await getNetworkState().type == NetworkStateType.CELLULAR
-
                 return deviceUser.connectionModeOptionOnline ? 'Online' : 'Offline'
             }
             case ContextsEnum.loginInstructions: {
